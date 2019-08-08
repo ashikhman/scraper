@@ -19,6 +19,6 @@ services:
     scraper_target:
         image: nginx
         ports:
-            - "${SCRAPER_TARGET_PORT}:80"
+            - "${EXAMPLE_ORG_PORT}:80"
         volumes:
-            - "./scraper_target:/usr/share/nginx/html:ro"
+            - "./testdata/example.org:/usr/share/nginx/html:ro"
