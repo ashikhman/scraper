@@ -6,7 +6,6 @@ volumes:
 services:
     postgres:
         image: postgres:11
-        restart: always
         environment:
             POSTGRES_USER: ${POSTGRES_USER}
             POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -16,7 +15,7 @@ services:
         ports:
             - "${POSTGRES_PORT}:5432"
 
-    scraper_target:
+    example:
         image: nginx
         ports:
             - "${EXAMPLE_ORG_PORT}:80"
