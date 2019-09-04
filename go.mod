@@ -4,7 +4,7 @@ go 1.12
 
 require (
 	github.com/coreos/go-systemd v0.0.0-20190719114852-fd7a80b32e1f // indirect
-	github.com/google/uuid v1.1.1 // indirect
+	github.com/google/uuid v1.1.1
 	github.com/jackc/pgconn v0.0.0-20190808204917-0a2ed72cf711 // indirect
 	github.com/jackc/pgtype v0.0.0-20190608164547-4e0ed911f557 // indirect
 	github.com/jackc/pgx/v4 v4.0.0-pre1

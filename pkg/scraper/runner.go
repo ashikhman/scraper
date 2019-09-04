@@ -33,12 +33,22 @@ func (r *Runner) Run() error {
 		return err
 	}
 	defer func() {
-		err := r.tx.Rollback(r.ctx)
-		if err != nil {
-			log.Error().Err(err).Msg("Failed to rollback runner's transaction")
-		}
+		txErr := r.tx.Err()
+		if txErr != nil {
+			err := r.tx.Rollback(r.ctx)
+			if err != nil {
+				log.Error().Err(txErr).Err(err).Msg("Failed to rollback runner's transaction")
+			}
 
-		log.Info().Msg("Runner's transaction rolled back")
+			log.Info().Msg("Runner's transaction committed")
+		} else {
+			err := r.tx.Commit(r.ctx)
+			if err != nil {
+				log.Error().Err(err).Msg("Failed to commit runner's transaction")
+			}
+
+			log.Info().Msg("Runner's transaction committed")
+		}
 	}()
 
 	rows, err := r.tx.Query(r.ctx, "SELECT domain_id, url FROM queue_record LIMIT 100 FOR UPDATE SKIP LOCKED")
@@ -55,8 +65,8 @@ func (r *Runner) Run() error {
 		return errors.New("no auth defined for proxy server")
 	}
 
-	log.Printf("%v", proxyServer.Auth.Username.String)
-
+	log.Info().Str("address", proxyServer.Socks5Address()).Str("username", proxyServer.Auth.Username.String).
+		Msg("Using proxy server")
 	proxyDial := func(addr string) (net.Conn, error) {
 		dialer, err := proxy.SOCKS5("tcp", proxyServer.Socks5Address(), &proxy.Auth{
 			User:     proxyServer.Auth.Username.String,
@@ -67,9 +77,10 @@ func (r *Runner) Run() error {
 		}
 		return dialer.Dial("tcp", addr)
 	}
+	_ = proxyDial
 
 	http := &fasthttp.Client{
-		Dial:         proxyDial,
+		//Dial:         proxyDial,
 		ReadTimeout:  1 * time.Second,
 		WriteTimeout: 1 * time.Second,
 	}
@@ -94,11 +105,6 @@ func (r *Runner) Run() error {
 			return err
 		}
 
-	}
-
-	err = r.tx.Commit(r.ctx)
-	if err != nil {
-		return err
 	}
 
 	return nil
