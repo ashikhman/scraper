@@ -3,7 +3,7 @@ package scraper
 import (
 	"context"
 	"errors"
-	"github.com/ashikhman/scraper/pkg/db"
+	"github.com/ashikhman/scraper/old/pkg/db"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/rs/zerolog/log"
 	"github.com/valyala/fasthttp"

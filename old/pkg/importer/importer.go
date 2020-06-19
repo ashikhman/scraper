@@ -1,7 +1,7 @@
 package importer
 
 import (
-	"github.com/ashikhman/scraper/pkg/db"
+	"github.com/ashikhman/scraper/old/pkg/db"
 	"github.com/rs/zerolog/log"
 )
 

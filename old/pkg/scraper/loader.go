@@ -2,8 +2,9 @@ package scraper
 
 import (
 	"bytes"
-	"github.com/ashikhman/scraper/pkg/db"
+	"github.com/ashikhman/scraper/old/pkg/db"
 	"github.com/google/uuid"
+	"github.com/jackc/pgtype"
 	"github.com/rs/zerolog/log"
 	"github.com/valyala/fasthttp"
 	"golang.org/x/net/proxy"
@@ -66,26 +67,38 @@ func (l *Loader) Load(address string) (item *Item) {
 		log.Fatal().Str("url", address).Int("status_code", response.StatusCode()).Msg("Invalid response code")
 	}
 
-	fileName, err := uuid.NewRandom()
-	if err != nil {
-		log.Fatal().Err(err).Msg("Failed to create random UUID")
-	}
+	var contentUri pgtype.Text
+	if response.StatusCode() == 200 {
+		fileName, err := uuid.NewRandom()
+		if err != nil {
+			log.Fatal().Err(err).Msg("Failed to create random UUID")
+		}
 
-	path := bytes.Buffer{}
-	path.WriteString(l.storagePath)
-	path.WriteRune('/')
-	path.WriteString(strconv.Itoa(rand.Intn(10000)))
-	path.WriteRune('/')
-	path.WriteString(fileName.String())
+		path := bytes.Buffer{}
+		path.WriteString(l.storagePath)
+		path.WriteRune('/')
+		path.WriteString(strconv.Itoa(rand.Intn(1000)))
+		path.WriteRune('/')
+		path.WriteString(fileName.String())
 
-	err = ioutil.WriteFile(path.String(), response.Body(), 0644)
-	if err != nil {
-		log.Fatal().Err(err).Msg("Failed to write to file")
+		err = ioutil.WriteFile(path.String(), response.Body(), 0644)
+		if err != nil {
+			log.Fatal().Err(err).Msg("Failed to write to file")
+		}
+
+		contentUri = pgtype.Text{
+			String: path.String(),
+			Status: pgtype.Present,
+		}
+	} else {
+		contentUri = pgtype.Text{
+			Status: pgtype.Null,
+		}
 	}
 
 	item = &Item{
 		Url:        address,
-		ContentUri: path.String(),
+		ContentUri: contentUri,
 		StatusCode: response.StatusCode(),
 	}
 	l.storage.Save(item)

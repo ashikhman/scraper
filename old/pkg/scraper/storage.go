@@ -2,7 +2,8 @@ package scraper
 
 import (
 	"context"
-	"github.com/ashikhman/scraper/pkg/db"
+	"github.com/ashikhman/scraper/old/pkg/db"
+	"github.com/jackc/pgtype"
 	"github.com/rs/zerolog/log"
 	"sync"
 )
@@ -14,7 +15,7 @@ type Storage struct {
 
 type Item struct {
 	Url        string
-	ContentUri string
+	ContentUri pgtype.Text
 	StatusCode int
 }
 
@@ -61,7 +62,7 @@ func (s *Storage) Save(item *Item) {
 INSERT INTO storage (url, content_uri, status_code)
 VALUES ($1, $2, $3)
 `
-	_, err := db.Pool().Exec(s.ctx, query, item.Url, item.ContentUri, item.StatusCode)
+	_, err := db.Pool().Exec(s.ctx, query, item.Url, &item.ContentUri, item.StatusCode)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to insert storage record")
 	}
